@@ -1,9 +1,10 @@
 name: Check landing and blog
 
 on:
+  workflow_call:
   pull_request:
   push:
-    branches: [main, feat/seo-blog]
+    branches: [feat/seo-blog, 'fix/**']
 
 permissions:
   contents: read

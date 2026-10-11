@@ -10,7 +10,11 @@ permissions:
   packages: write
 
 jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
   build:
+    needs: check
     runs-on: ubuntu-latest
 
     steps:
@@ -33,8 +37,8 @@ jobs:
           context: .
           push: true
           build-args: |
-            SITE_URL=${{ vars.SITE_URL }}
-            SITE_INDEXABLE=${{ vars.SITE_INDEXABLE || 'false' }}
+            SITE_URL=${{ vars.SITE_URL || 'https://prorels.com' }}
+            SITE_INDEXABLE=${{ vars.SITE_INDEXABLE || 'true' }}
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}

@@ -40,12 +40,12 @@ async function readBody(request: Request) {
 }
 
 export async function POST(request: Request) {
-  // const origin = contactOrigin(request, process.env.SITE_URL);
-  // if (!origin)
-  //   return json(
-  //     { message: "Обновите страницу и отправьте форму ещё раз." },
-  //     403,
-  //   );
+  const sourceOrigin = contactOrigin(request, process.env.SITE_URL);
+  if (!sourceOrigin)
+    return json(
+      { message: "Обновите страницу и отправьте форму ещё раз." },
+      403,
+    );
   if (
     request.headers.get("content-type")?.split(";")[0].trim() !==
     "application/json"
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       {
         title: article?.title ?? "Главная — поставка материалов ВСП",
         path: data.sourcePath,
-        url: new URL(data.sourcePath, origin).href,
+        url: new URL(data.sourcePath, sourceOrigin).href,
       },
       id,
     );

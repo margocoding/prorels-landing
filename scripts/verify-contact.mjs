@@ -97,7 +97,22 @@ try {
   assert.ok((await unavailable.json()).message.includes('zakaz@prorelsa.ru'));
   assert.equal(messages.length, 4);
   assert.ok(!log.includes(good.email) && !log.includes(good.comment), 'no personal data in application logs');
-  console.log('Contact verified: local SMTP delivery, fixed recipient, Reply-To, HTML/text, source/UTM, validation, origin, limits, SMTP rejection and missing configuration. No external email sent.');
+  await stop();
+  const proxied = await start({ SITE_URL: 'https://prorels.com' });
+  const publicPost = (origin, extra = {}) => fetch(`${proxied}/api/contact`, {
+    method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json', 'Sec-Fetch-Site': 'same-origin', ...extra },
+    body: JSON.stringify(good),
+  });
+  for (const origin of ['https://prorels.com', 'https://www.prorels.com']) {
+    assert.equal((await publicPost(origin)).status, 200, `form must work behind a proxy on ${origin}`);
+    assert.ok(messages.at(-1).mail.text.includes(`Адрес: ${origin}/`), 'email must identify the actual source URL');
+  }
+  const delivered = messages.length;
+  assert.equal((await publicPost('https://evil.example')).status, 403);
+  assert.equal((await publicPost('https://prorels.com', { 'Sec-Fetch-Site': 'cross-site' })).status, 403);
+  assert.equal(messages.length, delivered, 'rejected origins must not send mail');
+  console.log('Contact verified: local SMTP delivery, fixed recipient, Reply-To, HTML/text, source/UTM, validation, main/www domains behind a proxy, limits, SMTP rejection and missing configuration. No external email sent.');
 } finally {
   await stop();
   await new Promise(resolve => smtp.close(resolve));

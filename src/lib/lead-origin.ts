@@ -9,8 +9,18 @@ export function contactOrigin(request: Request, configured?: string) {
       origin.origin !== supplied
     )
       return null;
-    if (configured?.trim())
-      return new URL(configured.trim()).origin === supplied ? supplied : null;
+    if (configured?.trim()) {
+      const site = new URL(configured.trim());
+      if (site.origin === supplied) return supplied;
+      // The public site is served on both its main host and its www alias.
+      // Do not accept other subdomains, protocols, ports or lookalike hosts.
+      const withoutWww = (hostname: string) => hostname.replace(/^www\./, "");
+      return origin.protocol === site.protocol &&
+        origin.port === site.port &&
+        withoutWww(origin.hostname) === withoutWww(site.hostname)
+        ? supplied
+        : null;
+    }
     // NextURL normalizes 127.0.0.1 to localhost. Host preserves the actual
     // browser origin; unlike Origin, the browser cannot choose a different Host.
     const target = new URL(request.url);
@@ -18,8 +28,7 @@ export function contactOrigin(request: Request, configured?: string) {
       origin.protocol === target.protocol
       ? supplied
       : null;
-  } catch (e) {
-    console.error(e);
+  } catch {
     return null;
   }
 }

@@ -16,6 +16,23 @@ test('origin validation handles Next loopback normalization and rejects cross-or
   assert.equal(contactOrigin(req('http://127.0.0.1:4193'), 'https://landing.example.org'), null);
 });
 
+test('public origin accepts the configured domain and www behind a reverse proxy only', () => {
+  const req = (origin, site = 'same-origin') => new Request('http://127.0.0.1:5000/api/contact', {
+    headers: { host: 'www.prorels.com', origin, 'sec-fetch-site': site },
+  });
+  for (const configured of ['https://prorels.com', 'https://www.prorels.com/']) {
+    for (const origin of ['https://prorels.com', 'https://www.prorels.com']) {
+      assert.equal(contactOrigin(req(origin), configured), origin);
+    }
+    for (const origin of ['https://evil.example', 'https://prorels.com.evil.example', 'https://shop.prorels.com', 'https://www.www.prorels.com', 'http://prorels.com', 'https://prorels.com:8443', 'https://prorels.com/path', 'null']) {
+      assert.equal(contactOrigin(req(origin), configured), null);
+    }
+    assert.equal(contactOrigin(req('https://prorels.com', 'cross-site'), configured), null);
+  }
+  assert.equal(contactOrigin(req('https://prorels.com'), 'invalid-url'), null);
+  assert.equal(contactOrigin(new Request('https://prorels.com/api/contact'), 'https://prorels.com'), null);
+});
+
 test('contact validation rejects header injection, missing consent and invalid contacts', () => {
   assert.equal(validateLead(input).data.email, input.email);
   for (const email of ['buyer@example.org\r\nBcc: victim@example.org', 'bad@email', ['buyer@example.org'], 'a'.repeat(255) + '@example.org']) assert.ok(validateLead({ ...input, email }).errors.email);
