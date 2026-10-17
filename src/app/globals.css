@@ -109,7 +109,7 @@ summary:focus-visible {
   align-items: center;
   gap: 12px;
   color: var(--orange-text);
-  font-size: 11px;
+  font-size: 22px;
   line-height: 1.6;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -117,12 +117,6 @@ summary:focus-visible {
 }
 .eyebrow.light {
   color: #FB5A00;
-}
-.eyebrow:not(.light) {
-  width: fit-content;
-  padding: 5px 10px;
-  background: var(--ink);
-  border-radius: 2px;
 }
 .eyebrow > span {
   width: 24px;
@@ -1265,7 +1259,7 @@ summary:focus-visible {
     max-height: calc(100svh - 78px);
   }
   .eyebrow {
-    font-size: 10px;
+    font-size: 20px;
     margin-bottom: 17px;
   }
   .section-heading {
